@@ -261,6 +261,27 @@ require('lazy').setup({
             api_key = { '/usr/bin/security', 'find-generic-password', '-s openai_api_ley_neovim', '-w' },
           },
         },
+        hooks = {
+          CompleteFullContext = function(prt, params)
+            local template = [[
+        I have the following code from {{filename}}:
+
+        ```{{filetype}}
+        {{filecontent}}
+        ```
+
+        Please look at the following section specifically:
+        ```{{filetype}}
+        {{selection}}
+        ```
+
+        Please finish the code above carefully and logically.
+        Respond just with the snippet of code that should be inserted.
+        ]]
+            local model_obj = prt.get_model 'command'
+            prt.Prompt(params, prt.ui.Target.append, model_obj, nil, template)
+          end,
+        },
       }
     end,
   },
