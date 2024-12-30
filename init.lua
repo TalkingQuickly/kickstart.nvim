@@ -87,8 +87,8 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
-vim.g.mapleader = ' '
-vim.g.maplocalleader = ' '
+vim.g.mapleader = ','
+vim.g.maplocalleader = ','
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
@@ -189,6 +189,12 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Use my (Ben) standard commands for splits because they're so deeply embedded
+vim.keymap.set('n', '<leader>sv', ':vsplit<enter>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<leader>sh', ':hsplit<enter>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<leader>q', ':q<enter>', { desc = 'Move focus to the left window' })
+vim.keymap.set('n', '<leader>w', ':w<enter>', { desc = 'Move focus to the left window' })
+
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -229,6 +235,35 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  -- Install nvim tree because muscle memory
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    lazy = false,
+    dependencies = {
+      'nvim-tree/nvim-web-devicons',
+    },
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
+
+  -- Get all of the AI
+  --
+  {
+    'frankroeder/parrot.nvim',
+    dependencies = { 'ibhagwan/fzf-lua', 'nvim-lua/plenary.nvim' },
+    config = function()
+      require('parrot').setup {
+        -- Providers must be explicitly added to make them available.
+        providers = {
+          openai = {
+            api_key = { '/usr/bin/security', 'find-generic-password', '-s openai_api_ley_neovim', '-w' },
+          },
+        },
+      }
+    end,
+  },
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
@@ -413,14 +448,17 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
 
+      -- Instead of using / to toggle fuzzy find in buffer, use it to toggle the tree
+      vim.keymap.set('n', '<leader>/', ':NvimTreeToggle<enter>')
+
       -- Slightly advanced example of overriding default behavior and theme
-      vim.keymap.set('n', '<leader>/', function()
-        -- You can pass additional configuration to Telescope to change the theme, layout, etc.
-        builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
-          winblend = 10,
-          previewer = false,
-        })
-      end, { desc = '[/] Fuzzily search in current buffer' })
+      --vim.keymap.set('n', '<leader>/', function()
+      -- You can pass additional configuration to Telescope to change the theme, layout, etc.
+      --builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
+      --winblend = 10,
+      --previewer = false,
+      --})
+      --end, { desc = '[/] Fuzzily search in current buffer' })
 
       -- It's also possible to pass additional configuration options.
       --  See `:help telescope.builtin.live_grep()` for information about particular keys
@@ -629,6 +667,7 @@ require('lazy').setup({
         -- ts_ls = {},
         --
 
+        elixirls = {},
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
