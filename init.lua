@@ -197,6 +197,13 @@ vim.keymap.set('n', '<leader>sh', ':hsplit<enter>', { desc = 'Split horizontally
 vim.keymap.set('n', '<leader>q', ':q<enter>', { desc = 'Quit' })
 vim.keymap.set('n', '<leader>w', ':w<enter>', { desc = 'Write file' })
 
+-- AI Key Bindings
+vim.keymap.set('n', '<leader>pt', ':PrtCreateTestForFile<enter>', { desc = 'AI [t]ests' })
+vim.keymap.set('n', '<leader>pd', ':PrtWriteDocumentationForFile<enter>', { desc = 'AI [d]ocs' })
+vim.keymap.set('n', '<leader>pc', ':PrtChatToggle<enter>', { desc = '[c]hat Toggle' })
+vim.keymap.set('n', '<leader>pr', ':PrtChatResponde<enter>', { desc = 'Chat [r]espond' })
+
+-- Show the full diagnostics message
 vim.keymap.set('n', '<leader>dd', function()
   vim.diagnostic.open_float()
 end, { desc = 'Show floating LSD [d]iagnostics' })
@@ -287,6 +294,69 @@ require('lazy').setup({
             local model_obj = prt.get_model 'command'
             prt.Prompt(params, prt.ui.Target.append, model_obj, nil, template)
           end,
+          CreateTestForFile = function(prt, params)
+            local template = [[
+        I have the following code from {{filename}}:
+
+        ```{{filetype}}
+        {{filecontent}}
+        ```
+
+        Please create a unit test file to test all public methods in
+        that file.
+
+        Please output only code, do not output markdown code block tags
+        e.g. do not output ```elixir
+        ]]
+            local model_obj = prt.get_model 'command'
+            prt.Prompt(params, prt.ui.Target.vnew, model_obj, nil, template)
+          end,
+          WriteDocumentationForFile = function(prt, params)
+            local template = [[
+        I have the following code from {{filename}}:
+
+        ```{{filetype}}
+        {{selection}}
+        ```
+
+        Please update this file to include documentation for all public
+        methods
+
+        Please output only code, do not output markdown code block tags
+        e.g. do not output ```elixir
+        ]]
+            local model_obj = prt.get_model 'command'
+            prt.Prompt(params, prt.ui.Target.rewrite, model_obj, nil, template)
+          end,
+        },
+      }
+    end,
+  },
+
+  {
+    'olimorris/codecompanion.nvim',
+    dependencies = {
+      'nvim-lua/plenary.nvim',
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      require('codecompanion').setup {
+        adapters = {
+          openai = function()
+            return require('codecompanion.adapters').extend('openai', {
+              env = {
+                api_key = 'cmd:op read op://private/open_ai_personal/credential --no-newline',
+              },
+            })
+          end,
+        },
+        strategies = {
+          chat = {
+            adapter = 'openai',
+          },
+          inline = {
+            adapter = 'openai',
+          },
         },
       }
     end,
