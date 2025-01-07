@@ -203,6 +203,9 @@ vim.keymap.set('n', '<leader>pd', ':PrtWriteDocumentationForFile<enter>', { desc
 vim.keymap.set('n', '<leader>pc', ':PrtChatToggle<enter>', { desc = '[c]hat Toggle' })
 vim.keymap.set('n', '<leader>pr', ':PrtChatResponde<enter>', { desc = 'Chat [r]espond' })
 
+-- AI with Code Companion Key Bindings
+vim.keymap.set('n', '<leader>ll', ':CodeCompanionActions<enter>', { desc = 'Code Companion' })
+
 -- Show the full diagnostics message
 vim.keymap.set('n', '<leader>dd', function()
   vim.diagnostic.open_float()
@@ -338,6 +341,7 @@ require('lazy').setup({
     dependencies = {
       'nvim-lua/plenary.nvim',
       'nvim-treesitter/nvim-treesitter',
+      { 'MeanderingProgrammer/render-markdown.nvim', ft = { 'markdown', 'codecompanion' } },
     },
     config = function()
       require('codecompanion').setup {
@@ -349,13 +353,20 @@ require('lazy').setup({
               },
             })
           end,
+          anthropic = function()
+            return require('codecompanion.adapters').extend('anthropic', {
+              env = {
+                api_key = 'cmd:op read op://private/NeovimAnthropicAPIKey/credential --no-newline',
+              },
+            })
+          end,
         },
         strategies = {
           chat = {
-            adapter = 'openai',
+            adapter = 'anthropic',
           },
           inline = {
-            adapter = 'openai',
+            adapter = 'anthropic',
           },
         },
       }
